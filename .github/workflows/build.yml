@@ -1,55 +1,46 @@
-name: Build
+name: Build and Push
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
 
 env:
-  PLATFORMS: |
-    linux/amd64
-  TAGS: |
-    type=raw,value=latest,enable={{is_default_branch}}
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
+  build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
       - name: Set up Docker Buildx
-        id: buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          version: latest
-      - name: Login to Docker Hub
-        if: ${{ github.actor == github.repository_owner }}
+      - name: Login
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Collect image metadata
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ github.repository }}
-          tags: ${{ env.TAGS }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.actor == github.repository_owner }}
-          load: ${{ github.actor != github.repository_owner }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          target: release
-          cache-from: |
-            ${{ github.repository }}-cache
-          cache-to: |
-            type=registry,ref=${{ github.repository }}-cache,mode=max
-          platforms: ${{ env.PLATFORMS }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
