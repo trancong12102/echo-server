@@ -1,0 +1,7 @@
+.github
+.vscode
+coverage
+dist
+.gitiignore
+*.test.ts
+README.md

@@ -7,5 +7,5 @@ This is a simple echo server that echoes back the request sent to it.
 To run the server, simply run the following command:
 
 ```bash
-bun ./index.ts
+deno task dev
 ```

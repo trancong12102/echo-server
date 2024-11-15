@@ -1,9 +1,10 @@
-FROM oven/bun:1
-WORKDIR /usr/src/app
+FROM denoland/deno AS builder
+WORKDIR /app
 
-COPY index.ts .
+COPY deno* ./
+RUN deno install --frozen
 
-USER bun
+COPY *.ts ./
 
-EXPOSE 3000/tcp
-ENTRYPOINT [ "bun", "run", "index.ts" ]
+EXPOSE 3000
+CMD [ "deno", "run", "--allow-net", "main.ts" ]
