@@ -1,6 +1,9 @@
 import { app, EchoPayload } from "./app.ts";
 import { expect } from "jsr:@std/expect";
 
+const SERVICE = "echo-test";
+Deno.env.set("SERVICE", SERVICE);
+
 Deno.test("GET /", async () => {
   const headers = {
     "X-Custom-Header": "Hello, World!",
@@ -13,7 +16,7 @@ Deno.test("GET /", async () => {
   expect(payload).not.toBeNull();
   expect(payload).not.toBeUndefined();
 
-  const { path, method, body } = payload;
+  const { path, method, body, service } = payload;
   expect(path).toEqual("/");
   expect(method).toEqual("GET");
   expect(body).toBeNull();
@@ -21,6 +24,7 @@ Deno.test("GET /", async () => {
     Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]),
   );
   expect(payload.headers).toEqual(allLowerCaseHeaders);
+  expect(service).toEqual(SERVICE);
 });
 
 Deno.test("GET /some/path", async () => {

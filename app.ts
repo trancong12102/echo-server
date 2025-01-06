@@ -7,6 +7,7 @@ const valueValidator = (value: unknown) =>
 export const app = new Hono();
 
 export type EchoPayload = {
+  service: string;
   url: string;
   path: string;
   method: string;
@@ -37,6 +38,7 @@ app.all(
     })();
 
     return c.json<EchoPayload>({
+      service: Deno.env.get("SERVICE") || "echo",
       url,
       path,
       method,
